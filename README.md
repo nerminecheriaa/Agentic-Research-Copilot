@@ -9,6 +9,6 @@ Stack: FastAPI (SSE) · LangGraph · Qdrant · RAGAS · Next.js · Docker · Git
 ```bash
 cp .env.example .env   # then fill in the API keys
 docker compose up --build
-
+```
 - Backend : http://localhost:8000/health
 - Qdrant dashboard : http://localhost:6333/dashboard
