@@ -8,3 +8,9 @@ node_modules/
 qdrant_storage/
 *.log
 .DS_Store
+**/data/raw/*.pdf
+data/raw/*.pdf
+backend/data/raw/*.pdf
+
+# Conserver les fichiers .gitkeep
+!**/data/raw/.gitkeep
