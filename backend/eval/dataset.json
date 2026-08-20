@@ -1,0 +1,8 @@
+[
+  {"question": "What is corrective RAG?"},
+  {"question": "What is Agentic RAG and how does it differ from standard RAG?"},
+  {"question": "What is MultiHop-RAG designed to benchmark?"},
+  {"question": "How does Auto-RAG decide when to stop retrieving?"},
+  {"question": "What is the role of the retrieval evaluator in Corrective RAG?"},
+  {"question": "What are common causes of hallucination in RAG systems?"}
+]
