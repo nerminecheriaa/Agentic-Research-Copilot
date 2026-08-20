@@ -13,6 +13,7 @@ from ragas import EvaluationDataset, evaluate
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import AnswerRelevancy, Faithfulness
+from ragas.run_config import RunConfig
 
 from app.graph.build import app_graph
 from app.graph.llm import llm
@@ -55,11 +56,15 @@ def main():
     dataset = EvaluationDataset.from_list(samples)
 
     print("\nCalcul des métriques RAGAS (faithfulness, answer_relevancy)...")
+    # max_workers=1 : évite de lancer plusieurs appels Groq en parallèle et de re-cogner
+    # le rate limit du palier gratuit ; timeout plus long car les réponses sont séquentielles.
+    run_config = RunConfig(timeout=180, max_workers=1)
     result = evaluate(
         dataset=dataset,
         metrics=[Faithfulness(), AnswerRelevancy()],
         llm=LangchainLLMWrapper(llm),
         embeddings=LangchainEmbeddingsWrapper(FastEmbedEmbeddings()),
+        run_config=run_config,
     )
 
     print("\n=== Résultats RAGAS ===")
