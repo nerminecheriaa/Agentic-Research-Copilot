@@ -87,16 +87,26 @@ _rewrite_prompt = ChatPromptTemplate.from_messages(
             "Ce n'est PAS l'acronyme de gestion de projet Rouge/Ambre/Vert (Red/Amber/Green).\n\n"
             "Tu reformules une question pour améliorer une recherche documentaire dans un corpus "
             "de papers de recherche en IA/NLP. Garde le même sens, rends-la plus précise et riche "
-            "en mots-clés techniques. Réponds uniquement avec la question reformulée, rien d'autre.",
+            "en mots-clés techniques. Si une reformulation précédente est fournie et n'a pas suffi, "
+            "propose un angle VRAIMENT différent (autres mots-clés, autre facette de la question) "
+            "plutôt que de répéter la même formulation. "
+            "Réponds uniquement avec la question reformulée, rien d'autre.",
         ),
-        ("human", "{question}"),
+        (
+            "human",
+            "Question originale : {question}\n"
+            "Reformulation précédente (si tentative précédente insuffisante) : {previous_attempt}",
+        ),
     ]
 )
 _rewriter = (_rewrite_prompt | llm).with_retry(stop_after_attempt=4, wait_exponential_jitter=True)
 
 
 def rewrite_query_node(state: GraphState) -> dict:
-    new_query = _rewriter.invoke({"question": state["question"]}).content.strip()
+    previous = state.get("search_query") or "(aucune, première tentative)"
+    new_query = _rewriter.invoke(
+        {"question": state["question"], "previous_attempt": previous}
+    ).content.strip()
     print(f"[rewrite_query] {state['question']!r} -> {new_query!r}")
     return {"search_query": new_query, "retries": state["retries"] + 1}
 
