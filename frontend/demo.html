@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Agentic Research Copilot — Démo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; background: #0b0d12; color: #e6e8ee; }
+    h1 { font-size: 1.4rem; }
+    textarea { width: 100%; height: 70px; padding: 10px; border-radius: 8px; border: 1px solid #2a2f3a; background: #161a22; color: inherit; font-size: 1rem; resize: vertical; }
+    button { margin-top: 10px; padding: 10px 20px; border-radius: 8px; border: none; background: #4f7cff; color: white; font-size: 1rem; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status { margin-top: 16px; color: #9aa4b2; font-style: italic; }
+    #answer { margin-top: 16px; white-space: pre-wrap; line-height: 1.5; }
+    #sources { margin-top: 16px; font-size: 0.85rem; color: #9aa4b2; }
+    #sources a { color: #7ea2ff; }
+  </style>
+</head>
+<body>
+  <h1>🔎 Agentic Research Copilot</h1>
+  <p>Corrective RAG sur un corpus de papers arXiv (retrieval-augmented generation).</p>
+
+  <textarea id="question" placeholder="Pose une question, ex : What is corrective RAG?"></textarea>
+  <br />
+  <button id="ask">Demander</button>
+
+  <div id="status"></div>
+  <div id="answer"></div>
+  <div id="sources"></div>
+
+  <script>
+    const API_URL = "http://localhost:8000/chat";
+    const askBtn = document.getElementById("ask");
+    const questionEl = document.getElementById("question");
+    const statusEl = document.getElementById("status");
+    const answerEl = document.getElementById("answer");
+    const sourcesEl = document.getElementById("sources");
+
+    askBtn.addEventListener("click", async () => {
+      const question = questionEl.value.trim();
+      if (!question) return;
+
+      askBtn.disabled = true;
+      statusEl.textContent = "⏳ Recherche, évaluation, génération... (peut prendre 30s à 1min)";
+      answerEl.textContent = "";
+      sourcesEl.innerHTML = "";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+        if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+        const data = await res.json();
+
+        statusEl.textContent = `✅ Fondée sur le contexte : ${data.grounded} · Retries : ${data.retries}`;
+        answerEl.textContent = data.answer;
+        if (data.sources.length) {
+          sourcesEl.innerHTML =
+            "Sources : " +
+            data.sources
+              .map((s) => (s.startsWith("http") ? `<a href="${s}" target="_blank">${s}</a>` : s))
+              .join(", ");
+        }
+      } catch (err) {
+        statusEl.textContent = "❌ " + err.message;
+      } finally {
+        askBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
